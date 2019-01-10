@@ -6,10 +6,26 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
+var GitHubStrategy = require('passport-github').Strategy;
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var User = require("./models/user");
 
+//Configure GitHub Strategy
+passport.use(new GitHubStrategy({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL:"http://localhost:3000/auth/github/return"
+}, function(accessToken, refreshToken, profile, done){
+    User.findOneAndUpdate({
+        email:profile.emails[0].value
+    }, {
+        name: profile.displayName,
+        email:profile.emails[0].value,
+        photo: profile.photos[0].value
+    }, option, callback);
+
+}));
 
 passport.serializeUser(function(user,done){
     done(null, user._id);
