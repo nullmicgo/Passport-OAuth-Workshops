@@ -7,33 +7,54 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var GitHubStrategy = require('passport-github').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
+
+
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var User = require("./models/user");
+
+
+
+function generateOrFindUser(accessToken, refreshToken, profile, done){
+  if(profile.emails[0]){
+        User.findOneAndUpdate({
+          email:profile.emails[0].value
+      }, {
+          name: profile.displayName,
+          email:profile.emails[0].value,
+          photo: profile.photos[0].value
+      }, {
+        upsert: true
+      }, done);
+  } else{
+      var noEmailError = new Error("Your email privacy settings prevent you from signing in to Bookworm");
+      done(noEmailError, null);
+  }
+}
+
+
+
 
 //Configure GitHub Strategy
 passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL:"http://localhost:3000/auth/github/return"
-}, function(accessToken, refreshToken, profile, done){
-      if(profile.emails[0]){
-            User.findOneAndUpdate({
-              email:profile.emails[0].value
-          }, {
-              name: profile.displayName,
-              email:profile.emails[0].value,
-              photo: profile.photos[0].value
-          }, {
-            upsert: true
-          }, done);
-      } else{
-          var noEmailError = new Error("Your email privacy settings prevent you from signing in to Bookworm");
-          done(noEmailError, null);
-      }
+}, generateOrFindUser));
 
 
-}));
+
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_APP_ID,
+  clientSecret: process.env.FACEBOOK_APP_SECRET,
+  callbackURL: "http://localhost:3000/auth/facebook/return",
+  profileFields:['id','displayName','photos','email']
+},generateOrFindUser
+));
+
+
+
 
 passport.serializeUser(function(user,done){
     done(null, user._id);
