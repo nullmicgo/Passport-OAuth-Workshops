@@ -10,14 +10,12 @@ router.get('/login/github',
 
 //GET /auth/login/return
 router.get('/github/return',
-    passport.authenticate('github', {failureRedirect: '/'},
+    passport.authenticate('github', {failureRedirect: '/'}),
     function(req, res){
             //success Auth, redirect profile page
             res.redirect('/profile');
-
-
-    }
-    ));
+        }
+    );
 
 //Get /auth/logout
 router.get('/logout', function(req, res){
@@ -25,8 +23,4 @@ router.get('/logout', function(req, res){
     res.redirect('/');
 });
 
-
 module.exports = router;
-
-
-
