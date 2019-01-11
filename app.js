@@ -17,13 +17,21 @@ passport.use(new GitHubStrategy({
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL:"http://localhost:3000/auth/github/return"
 }, function(accessToken, refreshToken, profile, done){
-    User.findOneAndUpdate({
-        email:profile.emails[0].value
-    }, {
-        name: profile.displayName,
-        email:profile.emails[0].value,
-        photo: profile.photos[0].value
-    }, option, callback);
+      if(profile.emails[0]){
+            User.findOneAndUpdate({
+              email:profile.emails[0].value
+          }, {
+              name: profile.displayName,
+              email:profile.emails[0].value,
+              photo: profile.photos[0].value
+          }, {
+            upsert: true
+          }, done);
+      } else{
+          var noEmailError = new Error("Your email privacy settings prevent you from signing in to Bookworm");
+          done(noEmailError, null);
+      }
+
 
 }));
 
@@ -39,6 +47,7 @@ passport.deserializeUser(function(userId, done){
 
 
 var routes = require('./routes/index');
+var auth = require('./routes/auth');
 
 var app = express();
 
@@ -80,6 +89,7 @@ app.use(passport.session());
 db.on('error', console.error.bind(console, 'connection error:'));
 
 app.use('/', routes);
+app.use('/auth', auth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
