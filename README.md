@@ -21,4 +21,6 @@ Learn how to implement a custom user authentication system that controls users a
 
 #Start the application with:
 #MAC OS
-CLIENT_ID=<github id> CLIENT_SECRET=<github secret> CONSUMER_KEY=<twitter key> CONSUMER_SECRET=<twitter secret> ./bin/www
+
+
+GITHUB_CLIENT_ID=xxxxxx GITHUB_CLIENT_SECRET=xxxxx FACEBOOK_APP_ID=xxxx FACEBOOK_APP_SECRET=xxxxx ./bin/www
